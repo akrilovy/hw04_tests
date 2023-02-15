@@ -55,7 +55,7 @@ class PostPagesTests(TestCase):
             response = self.author_client.get(address)
             post = response.context.get("page_obj")[
                 0
-            ] 
+            ]
             self.check_post_eq(post, PostPagesTests.test_post)
 
     def test_detail_show_correct_template(self):
@@ -98,6 +98,7 @@ class PostPagesTests(TestCase):
                     expected_type,
                     f"Неверний тип для поля формы - {field}",
                 )
+
 
 class PaginatorViewTest(TestCase):
     @classmethod
