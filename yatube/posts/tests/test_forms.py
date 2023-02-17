@@ -1,3 +1,4 @@
+from django import forms
 from django.urls import reverse
 from django.test import TestCase, Client
 
@@ -39,7 +40,7 @@ class PostFormTest(TestCase):
         self.author_client.force_login(PostFormTest.test_post_author)
 
     def test_create_post(self):
-        posts_count = Post.objects.count()  # было постов 5
+        posts_count = Post.objects.count()
         form_data = {
             "text": "тестовый текст поста",
             "group": PostFormTest.test_group.pk,
@@ -47,17 +48,16 @@ class PostFormTest(TestCase):
         response = self.author_client.post(
             URL_CREATE_POST, data=form_data, follow=True
         )
-        now_count = Post.objects.count()  # стало постов 6
-        self.assertEqual(
-            posts_count + 1, now_count
-        )  # post_count + 1 == now_count
+        now_count = Post.objects.count()
+        self.assertEqual(posts_count + 1, now_count)
         self.assertRedirects(response, URL_AUTHOR)
         added_post = Post.objects.latest("id")
         self.assertEqual(added_post.text, form_data["text"])
         self.assertEqual(added_post.group.pk, form_data["group"])
+        self.assertEqual(added_post.author, PostFormTest.test_post_author)
 
     def test_edit_post_by_author(self):
-        posts_count = Post.objects.count()  # было постов 5
+        posts_count = Post.objects.count()
         form_data = {
             "text": "тестовый текст поста (изменение)",
             "group": PostFormTest.test_group_2.pk,
@@ -65,9 +65,27 @@ class PostFormTest(TestCase):
         response = self.author_client.post(
             PostFormTest.URL_POST_EDIT, data=form_data, follow=True
         )
-        now_count = Post.objects.count()  # стало постов 5
+        now_count = Post.objects.count()
+
         self.assertEqual(posts_count, now_count)
         self.assertRedirects(response, PostFormTest.URL_POST_DETAIL)
-        edited_post = response.context.get("post")
+
+        edited_post = Post.objects.get(id=PostFormTest.test_post.id)
         self.assertEqual(edited_post.text, form_data["text"])
         self.assertEqual(edited_post.group.pk, form_data["group"])
+
+    def test_create_edit_form_fields_type(self):
+        addresses = [URL_CREATE_POST, PostFormTest.URL_POST_EDIT]
+        form_fields = (
+            ("text", forms.fields.CharField),
+            ("group", forms.fields.ChoiceField),
+        )
+        for address in addresses:
+            response = self.author_client.get(address)
+            for field, expected_type in form_fields:
+                field_type = response.context.get("form").fields.get(field)
+                self.assertIsInstance(
+                    field_type,
+                    expected_type,
+                    f"Неверний тип для поля формы - {field}",
+                )

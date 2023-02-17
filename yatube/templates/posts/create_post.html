@@ -7,8 +7,14 @@
       <div class="card-header">       
         Новый пост             
       </div>
-      <div class="card-body">        
-        <form method="post" action="{% url 'posts:post_create'%}">
+      <div class="card-body">
+        <form method="post" action=
+          {% if edit %}
+            "{% url 'posts:edit' post_id=id_post %}"
+          {% else %}
+            "{% url 'posts:post_create'%}"
+          {% endif %}
+        >
           {% csrf_token %}
           {% for field in form %}  
             <div class="form-group row my-3 p-3">

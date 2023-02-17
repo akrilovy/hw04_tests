@@ -85,3 +85,21 @@ class PostURLTests(TestCase):
                 self.assertTemplateUsed(
                     response, template, f"неверный шаблон для адреса {address}"
                 )
+
+    def test_posts_urls_redirect(self):
+        addresses_clients_redirects = [
+            (
+                URL_CREATE_POST,
+                self.client,
+                f"/auth/login/?next={URL_CREATE_POST}",
+            ),
+            (
+                PostURLTests.URL_POST_EDIT,
+                self.client,
+                f"/auth/login/?next={PostURLTests.URL_POST_EDIT}",
+            ),
+            (PostURLTests.URL_POST_EDIT, self.authorized_client, URL_AUTHOR),
+        ]
+        for address, client, redirect in addresses_clients_redirects:
+            response = client.get(address, follow=True)
+            self.assertRedirects(response, redirect)

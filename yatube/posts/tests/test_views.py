@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from posts.models import Post, Group, User
 from posts.views import POST_COUNT
+from posts.forms import PostForm
 
 
 URL_INDEX = reverse("posts:index")
@@ -37,14 +38,6 @@ class PostPagesTests(TestCase):
         self.author_client = Client()
         self.author_client.force_login(PostPagesTests.test_post_author)
 
-    def check_post_eq(self, post1, post2):
-        self.assertEqual(post1.author, post2.author)
-        self.assertEqual(post1.text, post2.text)
-        self.assertEqual(post1.group, post2.group)
-        self.assertEqual(
-            post1.pk, post2.pk
-        )  # TODO если pk совпадают, то совпадает всё?. Нужно ли остальное?
-
     def test_posts_pages_show_context(self):
         addresses = [
             URL_INDEX,
@@ -53,27 +46,18 @@ class PostPagesTests(TestCase):
         ]
         for address in addresses:
             response = self.author_client.get(address)
-            post = response.context.get("page_obj")[
-                0
-            ]
-            self.check_post_eq(post, PostPagesTests.test_post)
+            post = response.context.get("page_obj")[0]
+            self.assertEqual(post, PostPagesTests.test_post)
 
     def test_detail_show_correct_template(self):
         response = self.author_client.get(PostPagesTests.URL_POST_DETAIL)
         post = response.context.get("post")
-        self.check_post_eq(post, PostPagesTests.test_post)
+        self.assertEqual(post, PostPagesTests.test_post)
 
     def test_group_context(self):
         response = self.author_client.get(URL_GROUP)
         group = response.context.get("group")
-        self.assertEqual(group.slug, PostPagesTests.test_group.slug)
-        self.assertEqual(group.title, PostPagesTests.test_group.title)
-        self.assertEqual(
-            group.description, PostPagesTests.test_group.description
-        )
-        self.assertEqual(
-            group.pk, PostPagesTests.test_group.pk
-        )  # TODO если pk совпадают, то нужно ли проверять остальное?
+        self.assertEqual(group.pk, PostPagesTests.test_group.pk)
 
     def test_profile_context(self):
         response = self.author_client.get(URL_AUTHOR)
@@ -85,19 +69,10 @@ class PostPagesTests(TestCase):
 
     def test_create_edit_context(self):
         addresses = [URL_CREATE_POST, PostPagesTests.URL_POST_EDIT]
-        form_fields = (
-            ("text", forms.fields.CharField),
-            ("group", forms.fields.ChoiceField),
-        )
         for address in addresses:
             response = self.author_client.get(address)
-            for field, expected_type in form_fields:
-                field_type = response.context.get("form").fields.get(field)
-                self.assertIsInstance(
-                    field_type,
-                    expected_type,
-                    f"Неверний тип для поля формы - {field}",
-                )
+            form = response.context.get("form")
+            self.assertIsInstance(form, PostForm)
 
 
 class PaginatorViewTest(TestCase):
