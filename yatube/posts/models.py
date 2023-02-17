@@ -40,7 +40,7 @@ class Post(models.Model):
 
     def __str__(self) -> str:
         return self.text[:15]
-    
+
     def __eq__(self, other) -> bool:
         return self.id == other.id
 
