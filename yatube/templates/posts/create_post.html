@@ -8,7 +8,7 @@
         Новый пост             
       </div>
       <div class="card-body">
-        <form method="post" action=
+        <form method="post" enctype="multipart/form-data" action=
           {% if edit %}
             "{% url 'posts:edit' post_id=id_post %}"
           {% else %}

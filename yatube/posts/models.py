@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
+
 User = get_user_model()
 
 
@@ -37,6 +38,11 @@ class Post(models.Model):
         verbose_name='Группа',
         help_text='Группа, к которой будет относиться пост'
     )
+    image = models.ImageField(
+        'Картинка',
+        upload_to='posts/',
+        blank=True
+    )  
 
     def __str__(self) -> str:
         return self.text[:15]
@@ -46,3 +52,32 @@ class Post(models.Model):
 
     class Meta:
         ordering = ["-pub_date"]
+        verbose_name = 'Пост'
+        verbose_name_plural = 'Посты'
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Комментарий к посту',
+        help_text='Для какого поста этот комментарий'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор комментария',
+        help_text='Кто автор этого комментария'
+    )
+    text = models.TextField(
+        verbose_name='Текст комментария',
+        max_length=140,
+        help_text='Введите текст от 3-х до 140 символов',
+        blank=False,
+    )
+    created = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Время комментария',
+        help_text='Завполняется автоматически'
+    )

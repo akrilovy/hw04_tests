@@ -2,8 +2,8 @@ from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 
-from .models import Group, Post, User
-from .forms import PostForm
+from .models import Group, Post, User, Comment
+from .forms import PostForm, CommentForm
 
 
 POST_COUNT = 10
@@ -48,8 +48,11 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
+    comments = Comment.objects.filter(post=post)
     context = {
         "post": post,
+        "comments": comments,
+        "form": CommentForm()
     }
     return render(request, "posts/post_detail.html", context)
 
@@ -72,7 +75,11 @@ def post_edit(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.user != post.author:
         return redirect('posts:profile', post.author)
-    form = PostForm(request.POST or None, instance=post)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=post
+    )
     if form.is_valid():
         post = form.save()
         return redirect("posts:post_detail", post_id=post.id)
@@ -80,3 +87,32 @@ def post_edit(request, post_id):
         request, "posts/create_post.html", {"form": form, "edit": True,
                                             'id_post': post.id}
     )
+
+@login_required
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+    return redirect('posts:post_detail', post_id=post_id)
+
+@login_required
+def follow_index(request):
+    # информация о текущем пользователе доступна в переменной request.user
+    # ...
+    context = {}
+    return render(request, 'posts/follow.html', context)
+
+@login_required
+def profile_follow(request, username):
+    # Подписаться на автора
+    ...
+
+@login_required
+def profile_unfollow(request, username):
+    # Дизлайк, отписка
+    ...
+ 

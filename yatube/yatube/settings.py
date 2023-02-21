@@ -25,6 +25,17 @@ SECRET_KEY = "@xbv7)i(fdku0@5(t84^rt=qc1z-&u6+bt92f_!v2v$vk@c294"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CSRF_FAILURE_VIEW = 'core.views.csrf_failure'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
+
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
@@ -50,6 +61,7 @@ INSTALLED_APPS = [
     "users.apps.UsersConfig",
     "core.apps.CoreConfig",
     "about.apps.AboutConfig",
+    "sorl.thumbnail",
 ]
 
 MIDDLEWARE = [
